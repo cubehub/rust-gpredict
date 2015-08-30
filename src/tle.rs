@@ -93,7 +93,7 @@ pub fn create_tle_from_file(tlename: &str, pathstr: &str) -> Result<Tle, String>
     }
 }
 
-pub fn create_tle_t(tle: Tle) -> Result<ffipredict::tle_t, &'static str> {
+pub fn create_tle_t(tle: &Tle) -> Result<ffipredict::tle_t, &'static str> {
     let mut tle_t = ffipredict::tle_t {
         epoch: 0.0,
         epoch_year: 0,
@@ -123,9 +123,9 @@ pub fn create_tle_t(tle: Tle) -> Result<ffipredict::tle_t, &'static str> {
         //..Default::default()
     };
 
-    let name = CString::new(tle.name).unwrap();
-    let line1 = CString::new(tle.line1).unwrap();
-    let line2 = CString::new(tle.line2).unwrap();
+    let name = CString::new(tle.name.clone()).unwrap();
+    let line1 = CString::new(tle.line1.clone()).unwrap();
+    let line2 = CString::new(tle.line2.clone()).unwrap();
     let mut buf = [[0u8; 80]; 3];
 
     copy_memory(name.as_bytes_with_nul(), &mut buf[0]);

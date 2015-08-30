@@ -129,7 +129,7 @@ fn julian_day_nr(year: i32, month: i32, day: i32, h: i32, m: i32, s: i32) -> f64
 
 impl Predict {
 
-    pub fn new(tle: tle::Tle, location: Location) -> Predict {
+    pub fn new(tle: &tle::Tle, location: &Location) -> Predict {
         let tle_t = tle::create_tle_t(tle).unwrap();
 
         let sgps: ffipredict::sgpsdp_static_t = Default::default();
