@@ -36,7 +36,7 @@ pub struct Location {
     pub alt_m: i32,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Sat {
     /// next AOS
     pub aos:                Option<time::Tm>,
@@ -72,6 +72,7 @@ pub struct Sat {
     pub orbit_nr:           u64,
 }
 
+#[derive(Debug)]
 pub struct Predict {
     pub sat: Sat,
 
