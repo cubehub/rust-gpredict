@@ -39,10 +39,10 @@ pub struct Location {
 #[derive(Default)]
 pub struct Sat {
     /// next AOS
-    pub aos:                f64,
+    pub aos:                Option<time::Tm>,
 
     /// next LOS
-    pub los:                f64,
+    pub los:                Option<time::Tm>,
 
     /// azimuth [deg]
     pub az_deg:             f64,
@@ -127,6 +127,12 @@ fn julian_day_nr(year: i32, month: i32, day: i32, h: i32, m: i32, s: i32) -> f64
     julian_date_of_year(year) + day_of_the_year(year, month, day) as f64 + fraction_of_day(h, m, s)
 }
 
+fn julian_to_unix(julian: f64) -> time::Tm {
+    let unix = (julian - 2440587.5) * 86400.;
+    let t = time::Timespec::new(unix.trunc() as i64, unix.fract() as i32);
+    time::at(t)
+}
+
 impl Predict {
 
     pub fn new(tle: &tle::Tle, location: &Location) -> Predict {
@@ -197,10 +203,19 @@ impl Predict {
             None => unsafe {ffipredict::get_current_daynum()}
         };
 
+        // we do not have AOS with some satellites
+        let aos = match unsafe {ffipredict::find_aos(&mut self.p_sat, &mut self.p_qth, juliantime, 1.0)} {
+            0.0 => None,
+            aos => Some(julian_to_unix(aos)),
+        };
+        let los = match unsafe {ffipredict::find_los(&mut self.p_sat, &mut self.p_qth, juliantime, 1.0)} {
+            0.0 => None,
+            los => Some(julian_to_unix(los)),
+        };
         unsafe {ffipredict::predict_calc(&mut self.p_sat, &mut self.p_qth, juliantime)};
 
-        self.sat.aos                = self.p_sat.aos;
-        self.sat.los                = self.p_sat.los;
+        self.sat.aos                = aos;
+        self.sat.los                = los;
         self.sat.az_deg             = self.p_sat.az;
         self.sat.el_deg             = self.p_sat.el;
         self.sat.range_km           = self.p_sat.range;

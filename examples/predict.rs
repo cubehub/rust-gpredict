@@ -43,8 +43,8 @@ fn main() {
 
     loop {
         predict.update(Some(time::now_utc()));
-        info!("aos        : {:.2}", predict.sat.aos);
-        info!("los        : {:.2}", predict.sat.los);
+        info!("aos        : {:?}", predict.sat.aos.expect("do not have AOS with this satellite"));
+        info!("los        : {:?}", predict.sat.los.expect("do not have LOS with this satellite"));
         info!("az         : {:.2}°", predict.sat.az_deg);
         info!("el         : {:.2}°", predict.sat.el_deg);
         info!("range      : {:.0} km", predict.sat.range_km);
