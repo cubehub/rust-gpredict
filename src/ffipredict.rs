@@ -27,7 +27,7 @@ use libc::{c_void, c_int, c_char, c_double, c_ulong, c_uint};
 #[repr(C)]
 #[allow(dead_code)]
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum op_stat_t {
     OP_STAT_UNKNOWN = 0,
     OP_STAT_OPERATIONAL,    // Operational           [+]
@@ -41,7 +41,7 @@ pub enum op_stat_t {
 #[repr(C)]
 #[allow(dead_code)]
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum orbit_type_t {
     ORBIT_TYPE_UNKNOWN = 0,
     ORBIT_TYPE_LEO,         // Low Earth orbit, up to 1200 km
@@ -57,7 +57,7 @@ pub enum orbit_type_t {
 
 #[repr(C)]
 #[allow(dead_code, raw_pointer_derive)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct qth_t {
     pub name:       *const c_char,  // Name, eg. callsign
     pub loc:        *const c_char,  // Location, eg City, Country
@@ -71,7 +71,7 @@ pub struct qth_t {
 
 #[repr(C)]
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct tle_t {
     pub epoch:      c_double,       // Epoch Time in NORAD TLE format YYDDD.FFFFFFFF
     pub epoch_year: c_uint,         // Epoch: year
@@ -102,7 +102,7 @@ pub struct tle_t {
 }
 
 #[repr(C)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 #[allow(dead_code)]
 pub struct vector_t {
     pub x:          c_double,   // X component
@@ -113,7 +113,7 @@ pub struct vector_t {
 
 #[repr(C)]
 #[allow(dead_code)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 /// Common arguments between deep-space functions
 pub struct deep_arg_t {
     // Used by dpinit part of Deep()
@@ -146,7 +146,7 @@ pub struct deep_arg_t {
 
 #[repr(C)]
 #[allow(dead_code)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 /// static data for SGP4 and SDP4
 pub struct sgpsdp_static_t {
     pub aodp:       c_double,
@@ -183,7 +183,7 @@ pub struct sgpsdp_static_t {
 
 #[repr(C)]
 #[allow(dead_code)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 /// static data for DEEP
 pub struct deep_static_t {
     pub thgr:       c_double,
@@ -272,7 +272,7 @@ pub struct deep_static_t {
 
 #[repr(C)]
 #[allow(raw_pointer_derive)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct sat_t {
     pub name:       *const c_char,
     pub nickname:   *const c_char,
