@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#[macro_use]
+extern crate log;
 extern crate libc;
 extern crate time;
 

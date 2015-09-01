@@ -124,11 +124,17 @@ fn day_of_the_year(yr: i32, mo: i32, dy: i32) -> i32 {
 }
 
 // Calculates Julian Day Number
-fn julian_day_nr(year: i32, month: i32, day: i32, h: i32, m: i32, s: i32) -> f64 {
-    julian_date_of_year(year) + day_of_the_year(year, month, day) as f64 + fraction_of_day(h, m, s)
+fn julian_timestamp(t: time::Tm) -> f64 {
+    let year = t.tm_year + 1900;
+    let month = t.tm_mon + 1;
+
+    julian_date_of_year(year) +
+        day_of_the_year(year, month, t.tm_mday) as f64 +
+        fraction_of_day(t.tm_hour, t.tm_min, t.tm_sec) +
+        t.tm_nsec as f64 / 1000_f64 / 8.64e+10
 }
 
-fn julian_to_unix(julian: f64) -> time::Tm {
+pub fn julian_to_unix(julian: f64) -> time::Tm {
     let unix = (julian - 2440587.5) * 86400.;
     let t = time::Timespec::new(unix.trunc() as i64, unix.fract() as i32);
     time::at(t)
@@ -200,11 +206,11 @@ impl Predict {
 
     pub fn update(&mut self, timeoption: Option<time::Tm>) {
         let juliantime = match timeoption {
-            Some(t) => julian_day_nr(t.tm_year+1900, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec),
+            Some(t) => julian_timestamp(t),
             None => unsafe {ffipredict::get_current_daynum()}
         };
 
-        // we do not have AOS with some satellites
+        // we do not have AOS with some satellites, therefore option is used
         let aos = match unsafe {ffipredict::find_aos(&mut self.p_sat, &mut self.p_qth, juliantime, 1.0)} {
             0.0 => None,
             aos => Some(julian_to_unix(aos)),
@@ -213,6 +219,7 @@ impl Predict {
             0.0 => None,
             los => Some(julian_to_unix(los)),
         };
+
         unsafe {ffipredict::predict_calc(&mut self.p_sat, &mut self.p_qth, juliantime)};
 
         self.sat.aos                = aos;
@@ -230,8 +237,11 @@ impl Predict {
 }
 
 #[test]
-fn test_julian_day_nr() {
+fn test_julian_timestamp() {
     // http://en.wikipedia.org/wiki/Julian_day#Converting_Julian_or_Gregorian_calendar_date_to_Julian_Day_Number
-    assert_eq!(julian_day_nr(2000, 1, 1, 12, 00, 00), 2451545.0);
-    assert_eq!(julian_day_nr(1970, 1, 1, 00, 00, 00), 2440587.5);
+    let t = time::strptime("2000-1-1 12:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+    assert_eq!(julian_timestamp(t), 2451545.0);
+
+    let t = time::strptime("1970-1-1 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+    assert_eq!(julian_timestamp(t), 2440587.5);
 }
