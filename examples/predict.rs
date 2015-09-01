@@ -5,7 +5,7 @@ extern crate time;
 extern crate gpredict;
 
 use gpredict::tle;
-use gpredict::predict::{Predict, Location};
+use gpredict::predict::{self, Predict, Location};
 
 use std::thread;
 
@@ -33,18 +33,21 @@ fn main() {
     info!("predict example started");
 
     let tle: tle::Tle = tle::Tle{
-        name: "ESTCUBE 1".to_string(),
-        line1: "1 39161U 13021C   15091.47675532  .00001890  00000-0  31643-3 0  9990".to_string(),
-        line2: "2 39161  98.0727 175.0786 0009451 192.0216 168.0788 14.70951130101965".to_string()
+        name: "GRIFEX".to_string(),
+        line1: "1 40379U 15003D   15243.42702278  .00003367  00000-0  17130-3 0  9993".to_string(),
+        line2: "2 40379  99.1124 290.6779 0157088   8.9691 351.4280 15.07659299 31889".to_string()
     };
 
     let location: Location = Location{lat_deg:58.64560, lon_deg: 23.15163, alt_m: 8};
     let mut predict: Predict = Predict::new(&tle, &location);
 
     loop {
-        predict.update(Some(time::now_utc()));
-        info!("aos        : {:?}", predict.sat.aos.expect("do not have AOS with this satellite"));
-        info!("los        : {:?}", predict.sat.los.expect("do not have LOS with this satellite"));
+        // these two are the same:
+        //predict.update(Some(time::now_utc()));
+        predict.update(None);
+
+        info!("aos        : {:}", predict.sat.aos.expect("do not have AOS with this satellite").to_utc().rfc3339());
+        info!("los        : {:}", predict.sat.los.expect("do not have LOS with this satellite").to_utc().rfc3339());
         info!("az         : {:.2}°", predict.sat.az_deg);
         info!("el         : {:.2}°", predict.sat.el_deg);
         info!("range      : {:.0} km", predict.sat.range_km);
