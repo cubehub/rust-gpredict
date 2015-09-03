@@ -134,7 +134,7 @@ impl Predict {
         self.sat.lon_deg            = self.p_sat.ssplon;
         self.sat.alt_km             = self.p_sat.alt;
         self.sat.vel_km_s           = self.p_sat.velo;
-        self.sat.orbit_nr           = self.p_sat.orbit;
+        self.sat.orbit_nr           = self.p_sat.orbit as u64;
     }
 }
 
