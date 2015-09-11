@@ -26,6 +26,7 @@
 extern crate log;
 extern crate libc;
 extern crate time;
+extern crate rustc_serialize;
 
 pub mod ffipredict;
 pub mod tle;

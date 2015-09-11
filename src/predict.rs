@@ -29,7 +29,7 @@ use tle;
 use std::default::Default;
 use time;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, RustcEncodable, RustcDecodable)]
 pub struct Location {
     pub lat_deg: f64,
     pub lon_deg: f64,
