@@ -29,12 +29,28 @@ use tle;
 use std::default::Default;
 use time;
 
-#[derive(Debug, Copy, Clone, PartialEq, RustcEncodable, RustcDecodable)]
+#[derive(Debug, Copy, Clone, RustcEncodable, RustcDecodable)]
 pub struct Location {
     pub lat_deg: f64,
     pub lon_deg: f64,
     pub alt_m: i32,
 }
+
+impl PartialEq for Location {
+    fn eq(&self, other: &Location) -> bool {
+        self.alt_m == other.alt_m &&
+        (self.lat_deg - other.lat_deg).abs() < 0.000_000_1 &&
+        (self.lon_deg - other.lon_deg).abs() < 0.000_000_1
+    }
+}
+
+#[test]
+fn location_partialeq() {
+    let first  = Location { lat_deg: 56.7865,            lon_deg: 21.4444,            alt_m: 8 };
+    let second = Location { lat_deg: 56.786500000000004, lon_deg: 21.444399999999998, alt_m: 8 };
+    assert_eq!(first, second);
+}
+
 
 #[derive(Default, Debug)]
 pub struct Sat {
