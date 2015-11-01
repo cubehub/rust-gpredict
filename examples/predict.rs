@@ -5,7 +5,7 @@ extern crate time;
 extern crate gpredict;
 
 use gpredict::tle;
-use gpredict::predict::{self, Predict, Location};
+use gpredict::predict::{Predict, Location};
 
 use std::thread;
 

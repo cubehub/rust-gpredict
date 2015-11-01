@@ -22,12 +22,14 @@
  * SOFTWARE.
  */
 
-
 use ffipredict;
 use tle;
 
 use std::default::Default;
 use time;
+use ::sat::Sat;
+use ::julian_time::{julian_timestamp, julian_to_unix};
+
 
 #[derive(Debug, Copy, Clone, RustcEncodable, RustcDecodable)]
 pub struct Location {
@@ -52,108 +54,12 @@ fn location_partialeq() {
 }
 
 
-#[derive(Default, Debug)]
-pub struct Sat {
-    /// next AOS
-    pub aos:                Option<time::Tm>,
-
-    /// next LOS
-    pub los:                Option<time::Tm>,
-
-    /// azimuth [deg]
-    pub az_deg:             f64,
-
-    /// elevation [deg]
-    pub el_deg:             f64,
-
-    /// range [km]
-    pub range_km:           f64,
-
-    /// range rate [km/sec]
-    pub range_rate_km_sec:  f64,
-
-    /// SSP latitude [deg]
-    pub lat_deg:            f64,
-
-    /// SSP longitude [deg]
-    pub lon_deg:            f64,
-
-    /// altitude [km]
-    pub alt_km:             f64,
-
-    /// velocity [km/s]
-    pub vel_km_s:           f64,
-
-    /// orbit number
-    pub orbit_nr:           u64,
-}
-
 #[derive(Debug)]
 pub struct Predict {
     pub sat: Sat,
 
     p_sat: ffipredict::sat_t,
     p_qth: ffipredict::qth_t,
-}
-
-fn fraction_of_day(h: i32, m: i32, s: i32) -> f64{
-    (h as f64 + (m as f64 + s as f64 / 60.0) / 60.0) / 24.0
-}
-
-/// Astronomical Formulae for Calculators, Jean Meeus, pages 23-25.
-/// Calculate Julian Date of 0.0 Jan year
-fn julian_date_of_year(yr: i32) -> f64 {
-    let mut year: u64;
-    let mut a: f64;
-    let mut b: f64;
-    let mut i: f64;
-
-    let mut jdoy: f64;
-
-    year = yr as u64 -1;
-    i = (year as f64 / 100.).trunc();
-    a = i;
-    i = (a / 4.).trunc();
-    b = (2. - a + i).trunc();
-    i = (365.25 * year as f64).trunc();
-    i += (30.6001_f64 * 14.0_f64).trunc();
-    jdoy = i + 1720994.5 + b;
-
-    jdoy
-}
-
-/// Calculates the day of the year for the specified date.
-fn day_of_the_year(yr: i32, mo: i32, dy: i32) -> i32 {
-    let days: [u8; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let mut day: i32 = 0;
-
-    for d in &days[0 .. mo as usize - 1] {
-        day += *d as i32;
-    }
-
-    day += dy as i32;
-    if (yr % 4 == 0) && ((yr % 100 != 0) || (yr % 400 == 0)) && (mo > 2) {
-        day += 1;
-    }
-
-    day
-}
-
-// Calculates Julian Day Number
-fn julian_timestamp(t: time::Tm) -> f64 {
-    let year = t.tm_year + 1900;
-    let month = t.tm_mon + 1;
-
-    julian_date_of_year(year) +
-        day_of_the_year(year, month, t.tm_mday) as f64 +
-        fraction_of_day(t.tm_hour, t.tm_min, t.tm_sec) +
-        t.tm_nsec as f64 / 1000_f64 / 8.64e+10
-}
-
-pub fn julian_to_unix(julian: f64) -> time::Tm {
-    let unix = (julian - 2440587.5) * 86400.;
-    let t = time::Timespec::new(unix.trunc() as i64, unix.fract() as i32);
-    time::at(t)
 }
 
 impl Predict {
@@ -250,14 +156,4 @@ impl Predict {
         self.sat.vel_km_s           = self.p_sat.velo;
         self.sat.orbit_nr           = self.p_sat.orbit as u64;
     }
-}
-
-#[test]
-fn test_julian_timestamp() {
-    // http://en.wikipedia.org/wiki/Julian_day#Converting_Julian_or_Gregorian_calendar_date_to_Julian_Day_Number
-    let t = time::strptime("2000-1-1 12:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
-    assert_eq!(julian_timestamp(t), 2451545.0);
-
-    let t = time::strptime("1970-1-1 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
-    assert_eq!(julian_timestamp(t), 2440587.5);
 }

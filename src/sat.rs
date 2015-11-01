@@ -22,18 +22,41 @@
  * SOFTWARE.
  */
 
-#[macro_use]
-extern crate log;
-extern crate libc;
-extern crate time;
-extern crate rustc_serialize;
+use time;
 
-mod julian_time;
-mod sat;
 
-pub mod ffipredict;
-pub mod tle;
-pub mod predict;
+#[derive(Default, Debug)]
+pub struct Sat {
+    /// next AOS
+    pub aos:                Option<time::Tm>,
 
-pub use self::tle::Tle;
-pub use self::predict::{Location, Predict};
+    /// next LOS
+    pub los:                Option<time::Tm>,
+
+    /// azimuth [deg]
+    pub az_deg:             f64,
+
+    /// elevation [deg]
+    pub el_deg:             f64,
+
+    /// range [km]
+    pub range_km:           f64,
+
+    /// range rate [km/sec]
+    pub range_rate_km_sec:  f64,
+
+    /// SSP latitude [deg]
+    pub lat_deg:            f64,
+
+    /// SSP longitude [deg]
+    pub lon_deg:            f64,
+
+    /// altitude [km]
+    pub alt_km:             f64,
+
+    /// velocity [km/s]
+    pub vel_km_s:           f64,
+
+    /// orbit number
+    pub orbit_nr:           u64,
+}
