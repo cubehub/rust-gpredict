@@ -22,37 +22,16 @@
  * SOFTWARE.
  */
 
-use ffipredict;
-use tle;
-
 use std::default::Default;
 use time;
+use coordinates::LLA;
+
+use ::ffipredict;
+use ::tle;
 use ::sat::Sat;
 use ::julian_time::{julian_timestamp, julian_to_unix};
 
-
-#[derive(Debug, Copy, Clone, RustcEncodable, RustcDecodable)]
-pub struct Location {
-    pub lat_deg: f64,
-    pub lon_deg: f64,
-    pub alt_m: i32,
-}
-
-impl PartialEq for Location {
-    fn eq(&self, other: &Location) -> bool {
-        self.alt_m == other.alt_m &&
-        (self.lat_deg - other.lat_deg).abs() < 0.000_000_1 &&
-        (self.lon_deg - other.lon_deg).abs() < 0.000_000_1
-    }
-}
-
-#[test]
-fn location_partialeq() {
-    let first  = Location { lat_deg: 56.7865,            lon_deg: 21.4444,            alt_m: 8 };
-    let second = Location { lat_deg: 56.786500000000004, lon_deg: 21.444399999999998, alt_m: 8 };
-    assert_eq!(first, second);
-}
-
+pub type Location = LLA;
 
 #[derive(Debug)]
 pub struct Predict {
@@ -64,8 +43,9 @@ pub struct Predict {
 
 impl Predict {
 
-    pub fn new(tle: &tle::Tle, location: &Location) -> Predict {
+    pub fn new<T: Into<LLA>>(tle: &tle::Tle, location: T) -> Predict {
         let tle_t = tle::create_tle_t(tle).unwrap();
+        let location_lla: LLA = location.into();
 
         let sgps: ffipredict::sgpsdp_static_t = Default::default();
         let dps: ffipredict::deep_static_t = Default::default();
@@ -113,9 +93,9 @@ impl Predict {
             name: b"placeholder\0".as_ptr() as *const i8,
             loc: b"placeholder\0".as_ptr() as *const i8,
             desc: b"placeholder\0".as_ptr() as *const i8,
-            lat: location.lat_deg,
-            lon: location.lon_deg,
-            alt: location.alt_m,
+            lat: location_lla.lat_deg,
+            lon: location_lla.lon_deg,
+            alt: location_lla.alt_m as i32,
             qra: b"placeholder\0".as_ptr() as *const i8,
             wx: b"placeholder\0".as_ptr() as *const i8,
         };
@@ -156,4 +136,25 @@ impl Predict {
         self.sat.vel_km_s           = self.p_sat.velo;
         self.sat.orbit_nr           = self.p_sat.orbit as u64;
     }
+}
+
+#[test]
+fn predict_location_formats() {
+    use coordinates::ECEF;
+    let tle = tle::Tle {
+        name: "GRIFEX".to_string(),
+        line1: "1 40379U 15003D   15243.42702278  .00003367  00000-0  17130-3 0  9993".to_string(),
+        line2: "2 40379  99.1124 290.6779 0157088   8.9691 351.4280 15.07659299 31889".to_string()
+    };
+    let lla = LLA { lat_deg: 0.,
+                    lon_deg: 0.,
+                    alt_m:   0., };
+    let ecef = ECEF { x: 0.,
+                      y: 0.,
+                      z: 0., };
+
+    Predict::new(&tle, &lla);
+    Predict::new(&tle, lla);
+    Predict::new(&tle, &ecef);
+    Predict::new(&tle, ecef);
 }

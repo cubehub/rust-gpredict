@@ -37,7 +37,7 @@ fn main() {
         line2: "2 40379  99.1124 290.6779 0157088   8.9691 351.4280 15.07659299 31889".to_string()
     };
 
-    let location: Location = Location{lat_deg:58.64560, lon_deg: 23.15163, alt_m: 8};
+    let location: Location = Location{lat_deg:58.64560, lon_deg: 23.15163, alt_m: 8.};
     let mut predict: Predict = Predict::new(&tle, &location);
 
     loop {

@@ -27,6 +27,7 @@ extern crate log;
 extern crate libc;
 extern crate time;
 extern crate rustc_serialize;
+extern crate coordinates;
 
 mod julian_time;
 mod sat;

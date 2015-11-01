@@ -12,3 +12,6 @@ rustc-serialize = "*"
 [dev-dependencies]
 log = "*"
 fern = "*"
+
+[dependencies.coordinates]
+git = "https://github.com/cubehub/rust-coordinates.git"
