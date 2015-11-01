@@ -4,8 +4,7 @@ extern crate fern;
 extern crate time;
 extern crate gpredict;
 
-use gpredict::tle;
-use gpredict::predict::{Predict, Location};
+use gpredict::{Predict, Location, Tle};
 
 use std::thread;
 
@@ -32,7 +31,7 @@ fn main() {
     // start processing
     info!("predict example started");
 
-    let tle: tle::Tle = tle::Tle{
+    let tle: Tle = Tle {
         name: "GRIFEX".to_string(),
         line1: "1 40379U 15003D   15243.42702278  .00003367  00000-0  17130-3 0  9993".to_string(),
         line2: "2 40379  99.1124 290.6779 0157088   8.9691 351.4280 15.07659299 31889".to_string()

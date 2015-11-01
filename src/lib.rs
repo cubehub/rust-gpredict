@@ -30,10 +30,9 @@ extern crate rustc_serialize;
 
 mod julian_time;
 mod sat;
-
-pub mod ffipredict;
-pub mod tle;
-pub mod predict;
+mod ffipredict;
+mod tle;
+mod predict;
 
 pub use self::tle::Tle;
 pub use self::predict::{Location, Predict};
