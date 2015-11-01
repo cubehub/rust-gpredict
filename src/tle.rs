@@ -24,8 +24,8 @@
 
 use ffipredict;
 
-use std::ffi::{CString};
-use libc::{c_char};
+use std::ffi::CString;
+use libc::c_char;
 use std::{cmp, ptr};
 use std::mem::transmute;
 use std::path::Path;

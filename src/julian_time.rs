@@ -68,7 +68,7 @@ fn day_of_the_year(yr: i32, mo: i32, dy: i32) -> i32 {
         day += *d as i32;
     }
 
-    day += dy as i32;
+    day += dy;
     if (yr % 4 == 0) && ((yr % 100 != 0) || (yr % 400 == 0)) && (mo > 2) {
         day += 1;
     }

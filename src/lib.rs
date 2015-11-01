@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+#![deny(missing_debug_implementations, trivial_casts, trivial_numeric_casts,
+        unstable_features, unused_import_braces, unused_qualifications)]
+
+
 #[macro_use]
 extern crate log;
 extern crate libc;
