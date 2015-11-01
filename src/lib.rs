@@ -37,3 +37,4 @@ mod predict;
 
 pub use self::tle::Tle;
 pub use self::predict::{Location, Predict};
+pub use self::sat::Sat;

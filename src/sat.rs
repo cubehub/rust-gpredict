@@ -23,6 +23,7 @@
  */
 
 use time;
+use coordinates::LLA;
 
 
 #[derive(Default, Debug)]
@@ -59,4 +60,22 @@ pub struct Sat {
 
     /// orbit number
     pub orbit_nr:           u64,
+}
+
+impl Sat {
+    pub fn location<T: From<LLA>>(&self) -> T {
+        LLA {
+            lat_deg: self.lat_deg,
+            lon_deg: self.lon_deg,
+            alt_m:   self.alt_km*1000.,
+        }.into()
+    }
+}
+
+#[test]
+fn sat_location_formats() {
+    use coordinates::ECEF;
+    let sat = Sat::default();
+    let _lla:  LLA  = sat.location();
+    let _ecef: ECEF = sat.location();
 }
