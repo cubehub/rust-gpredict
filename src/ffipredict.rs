@@ -56,7 +56,7 @@ pub enum orbit_type_t {
 }
 
 #[repr(C)]
-#[allow(dead_code, raw_pointer_derive)]
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct qth_t {
     pub name:       *const c_char,  // Name, eg. callsign
@@ -271,7 +271,6 @@ pub struct deep_static_t {
 }
 
 #[repr(C)]
-#[allow(raw_pointer_derive)]
 #[derive(Debug, Clone)]
 pub struct sat_t {
     pub name:       *const c_char,
