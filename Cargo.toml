@@ -1,10 +1,10 @@
 [package]
 name = "gpredict"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["Andres Vahter <andres.vahter@gmail.com>"]
 
 [dependencies]
-libc = "*"
+libc = "0.2.*"
 time = "*"
 log = "*"
 rustc-serialize = "*"
