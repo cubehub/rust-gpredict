@@ -22,71 +22,16 @@
  * SOFTWARE.
  */
 
-
-use ffipredict;
-use tle;
-
 use std::default::Default;
 use time;
+use coordinates::LLA;
 
-#[derive(Debug, Copy, Clone, RustcEncodable, RustcDecodable)]
-pub struct Location {
-    pub lat_deg: f64,
-    pub lon_deg: f64,
-    pub alt_m: i32,
-}
+use ::ffipredict;
+use ::tle;
+use ::sat::Sat;
+use ::julian_time::{julian_timestamp, julian_to_unix};
 
-impl PartialEq for Location {
-    fn eq(&self, other: &Location) -> bool {
-        self.alt_m == other.alt_m &&
-        (self.lat_deg - other.lat_deg).abs() < 0.000_000_1 &&
-        (self.lon_deg - other.lon_deg).abs() < 0.000_000_1
-    }
-}
-
-#[test]
-fn location_partialeq() {
-    let first  = Location { lat_deg: 56.7865,            lon_deg: 21.4444,            alt_m: 8 };
-    let second = Location { lat_deg: 56.786500000000004, lon_deg: 21.444399999999998, alt_m: 8 };
-    assert_eq!(first, second);
-}
-
-
-#[derive(Default, Debug)]
-pub struct Sat {
-    /// next AOS
-    pub aos:                Option<time::Tm>,
-
-    /// next LOS
-    pub los:                Option<time::Tm>,
-
-    /// azimuth [deg]
-    pub az_deg:             f64,
-
-    /// elevation [deg]
-    pub el_deg:             f64,
-
-    /// range [km]
-    pub range_km:           f64,
-
-    /// range rate [km/sec]
-    pub range_rate_km_sec:  f64,
-
-    /// SSP latitude [deg]
-    pub lat_deg:            f64,
-
-    /// SSP longitude [deg]
-    pub lon_deg:            f64,
-
-    /// altitude [km]
-    pub alt_km:             f64,
-
-    /// velocity [km/s]
-    pub vel_km_s:           f64,
-
-    /// orbit number
-    pub orbit_nr:           u64,
-}
+pub type Location = LLA;
 
 #[derive(Debug)]
 pub struct Predict {
@@ -96,70 +41,11 @@ pub struct Predict {
     p_qth: ffipredict::qth_t,
 }
 
-fn fraction_of_day(h: i32, m: i32, s: i32) -> f64{
-    (h as f64 + (m as f64 + s as f64 / 60.0) / 60.0) / 24.0
-}
-
-/// Astronomical Formulae for Calculators, Jean Meeus, pages 23-25.
-/// Calculate Julian Date of 0.0 Jan year
-fn julian_date_of_year(yr: i32) -> f64 {
-    let mut year: u64;
-    let mut a: f64;
-    let mut b: f64;
-    let mut i: f64;
-
-    let mut jdoy: f64;
-
-    year = yr as u64 -1;
-    i = (year as f64 / 100.).trunc();
-    a = i;
-    i = (a / 4.).trunc();
-    b = (2. - a + i).trunc();
-    i = (365.25 * year as f64).trunc();
-    i += (30.6001_f64 * 14.0_f64).trunc();
-    jdoy = i + 1720994.5 + b;
-
-    jdoy
-}
-
-/// Calculates the day of the year for the specified date.
-fn day_of_the_year(yr: i32, mo: i32, dy: i32) -> i32 {
-    let days: [u8; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    let mut day: i32 = 0;
-
-    for d in &days[0 .. mo as usize - 1] {
-        day += *d as i32;
-    }
-
-    day += dy as i32;
-    if (yr % 4 == 0) && ((yr % 100 != 0) || (yr % 400 == 0)) && (mo > 2) {
-        day += 1;
-    }
-
-    day
-}
-
-// Calculates Julian Day Number
-fn julian_timestamp(t: time::Tm) -> f64 {
-    let year = t.tm_year + 1900;
-    let month = t.tm_mon + 1;
-
-    julian_date_of_year(year) +
-        day_of_the_year(year, month, t.tm_mday) as f64 +
-        fraction_of_day(t.tm_hour, t.tm_min, t.tm_sec) +
-        t.tm_nsec as f64 / 1000_f64 / 8.64e+10
-}
-
-pub fn julian_to_unix(julian: f64) -> time::Tm {
-    let unix = (julian - 2440587.5) * 86400.;
-    let t = time::Timespec::new(unix.trunc() as i64, unix.fract() as i32);
-    time::at(t)
-}
-
 impl Predict {
 
-    pub fn new(tle: &tle::Tle, location: &Location) -> Predict {
+    pub fn new<T: Into<LLA>>(tle: &tle::Tle, location: T) -> Predict {
         let tle_t = tle::create_tle_t(tle).unwrap();
+        let location_lla: LLA = location.into();
 
         let sgps: ffipredict::sgpsdp_static_t = Default::default();
         let dps: ffipredict::deep_static_t = Default::default();
@@ -207,9 +93,9 @@ impl Predict {
             name: b"placeholder\0".as_ptr() as *const i8,
             loc: b"placeholder\0".as_ptr() as *const i8,
             desc: b"placeholder\0".as_ptr() as *const i8,
-            lat: location.lat_deg,
-            lon: location.lon_deg,
-            alt: location.alt_m,
+            lat: location_lla.lat_deg,
+            lon: location_lla.lon_deg,
+            alt: location_lla.alt_m as i32,
             qra: b"placeholder\0".as_ptr() as *const i8,
             wx: b"placeholder\0".as_ptr() as *const i8,
         };
@@ -248,16 +134,27 @@ impl Predict {
         self.sat.lon_deg            = self.p_sat.ssplon;
         self.sat.alt_km             = self.p_sat.alt;
         self.sat.vel_km_s           = self.p_sat.velo;
-        self.sat.orbit_nr           = self.p_sat.orbit as u64;
+        self.sat.orbit_nr           = self.p_sat.orbit;
     }
 }
 
 #[test]
-fn test_julian_timestamp() {
-    // http://en.wikipedia.org/wiki/Julian_day#Converting_Julian_or_Gregorian_calendar_date_to_Julian_Day_Number
-    let t = time::strptime("2000-1-1 12:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
-    assert_eq!(julian_timestamp(t), 2451545.0);
+fn predict_location_formats() {
+    use coordinates::ECEF;
+    let tle = tle::Tle {
+        name: "GRIFEX".to_string(),
+        line1: "1 40379U 15003D   15243.42702278  .00003367  00000-0  17130-3 0  9993".to_string(),
+        line2: "2 40379  99.1124 290.6779 0157088   8.9691 351.4280 15.07659299 31889".to_string()
+    };
+    let lla = LLA { lat_deg: 0.,
+                    lon_deg: 0.,
+                    alt_m:   0., };
+    let ecef = ECEF { x: 0.,
+                      y: 0.,
+                      z: 0., };
 
-    let t = time::strptime("1970-1-1 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
-    assert_eq!(julian_timestamp(t), 2440587.5);
+    Predict::new(&tle, &lla);
+    Predict::new(&tle, lla);
+    Predict::new(&tle, &ecef);
+    Predict::new(&tle, ecef);
 }
