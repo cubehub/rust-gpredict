@@ -18,3 +18,8 @@ And this in your crate root:
 ```rust
 extern crate gpredict;
 ```
+
+## run example
+```
+cargo run --example predict
+```
